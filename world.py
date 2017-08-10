@@ -77,6 +77,7 @@ class organism(object):
 
     def update(self):
         print("updating organism" + str(self))
+        
         if self.status['alive']:
             
             print("made it to update")
