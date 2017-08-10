@@ -18,7 +18,6 @@ while go:
     if key[pygame.K_q]:
         go = False
 
-        
     world1.update()
     population = world1.getpop()
     

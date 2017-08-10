@@ -8,7 +8,7 @@ modes = pygame.display.list_modes(16)
 surface = pygame.display.set_mode(screenSize)
 
 pygame.display.set_caption('Petri Dish Alpha 1')
-
+petrin = pygame.image.load('petrin.png')
 class OrganismSprite(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super(OrganismSprite,self).__init__()
@@ -37,12 +37,12 @@ class Box(object):
         rect = pygame.Rect((self.x,self.y), self.size)
         pygame.draw.rect(surface, self.color, rect)
 
-all_sprites_list = pygame.sprite.OrderedUpdates()
+all_sprites_list = pygame.sprite.Group()
         
 def subdraw(surface,pop):
     
     #all_sprites_list.clear(surface,black)
-    
+    all_sprites_list.empty() 
     surface.fill(black)
     
 
@@ -51,7 +51,6 @@ def subdraw(surface,pop):
 
         info = x.getstatus()
         petri = OrganismSprite(info["locx"],info["locy"])
-        
         all_sprites_list.add(petri)
         
 
