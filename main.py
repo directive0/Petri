@@ -6,10 +6,11 @@ from substrate import *
 import pygame
 
 pygame.init()
-
+organisms = pygame.sprite.Group()
 
 world1 = World()
 go = True
+
 
 while go:
     pygame.event.get()
@@ -18,7 +19,6 @@ while go:
     if key[pygame.K_q]:
         go = False
 
-    world1.update()
+    world1.update(organisms)
     population = world1.getpop()
-    
-    subdraw(surface,population)
+    subdraw(organisms,population,world1)

@@ -1,4 +1,5 @@
 import biomass
+from substrate import *
 import random
 #the world maintains the location of all organisms, monitors climate and food levels, determines biomass density, and controls updates.
 class World(object):
@@ -12,47 +13,45 @@ class World(object):
     def getpop(self):
         return self.population
             
-    def birth(self,locx,locy):
+    def birth(self,locx,locy,organisms):
         print("birthing a new organism at " + str(locx) + " and " + str(locy))
-        self.population.append(organism("meat",10,10,locx,locy,10,10,10))
+        self.population.append(organism("meat",10,10,locx,locy,200,10,10,organisms))
         
-    def starter(self):
-        for i in range(2):
+    def starter(self,organisms):
+        for i in range(3):
             self.newlocx = random.randint(0,self.stagex)
             self.newlocy = random.randint(0,self.stagey)
-            self.birth(self.newlocx,self.newlocy)
+            self.birth(self.newlocx,self.newlocy,organisms)
             
-    def update(self): 
+    def update(self,organisms): 
         if self.started == 1:
-            print("initial birth begun")
-            self.starter()
+            self.starter(organisms)
             self.started = 0
         
         for x in self.population:
-            x.update()
+            x.update(self)
             self.info = x.getstatus()
             print(self.info)
-            
+
 class organism(object):
 
-    def __init__(self,type,span,food,locationx,locationy,burn,attack,defend):
+    def __init__(self,type,span,food,locationx,locationy,burn,attack,defend,organismlist):
         self.genes={'type':type, 'span':span,'food':food,'burn':burn,'attack':attack,'defend':defend}
         self.genes['state']= 'defined'
         self.x = locationx
         self.y = locationy
+        burnadjust = random.randint(-100,100)
+        self.burn = burn + burnadjust
         self.direction = 0
         self.haschosen = False
         self.distance = 0
         self.sex = random.randint(0,1)
         self.status = {'alive' : True, 'pregnant': False, 'sick': False, 'age' : 0, 'sex' : self.sex, "locx" : self.x, "locy" : self.y }
-        #organism chooses a direction and a distance, moves in that direction for a distance and then stops and redos.
-    def randomove(self):
-        if self.haschosen:
-            if self.distance >= 0:
-                self.location += self.rate
-        else:
-            self.direction = random.randint(0, 360)
-            self.distance = random.randint(0,10)
+        self.randomdist = 0
+        self.sprite = OrganismSprite(self.x,self.y,self.sex)
+        organismlist.add(self.sprite)
+        self.organismlist = organismlist
+                #organism chooses a direction and a distance, moves in that direction for a distance and then stops and redos.
             
     def eat(self):
         pass
@@ -69,55 +68,71 @@ class organism(object):
         
     def mate(self):
         if self.sex == 0:
-            if not self.pregnant:
-                self.pregnant=random.randint(0,1)
+            if self.status["pregnant"] == True:
+                pass
             else:
-                self.gestation = 20
-                self.status = {pregnant : True}
+                self.gestation = 200
+                self.status["pregnant"]= True
 
-    def update(self):
-        print("updating organism" + str(self))
+    def update(self,world):
+
+        
+        if self.status['age'] >= self.burn:
+            self.status['alive'] = False
         
         if self.status['alive']:
             
-            print("made it to update")
-            randomx = random.randint(0,1)
-            randomy = random.randint(0,1)
+            if self.randomdist == 0:
+                self.randomx = random.randint(0,2)
+                self.randomy = random.randint(0,2)
+                self.randomdist = random.randint(1,20)
             
-            print(randomx)
-            
-            if randomx == 0:
-                self.x += 1
-            else:
-                self.x -= 1
+            if self.randomdist != 0:
+                if self.randomx == 0:
+                    self.x += 1
                 
-            if randomy == 0:
-                self.y += 1
-            else:
-                self.y -= 1
+                if self.randomx == 1:
+                    self.x -= 1
+                    
+                if self.randomy == 0:
+                    self.y += 1
+                
+                if self.randomy == 1:
+                    self.y -= 1
+
             
-            if self.x >= 310:
-                self.x = 310
+                if self.x >= 310:
+                    self.x = 310
             
-            if self.x <= 0:
-                self.x =0
+                if self.x <= 0:
+                    self.x =0
             
-            if self.y >= 230:
-                self.y = 230
+                if self.y >= 230:
+                    self.y = 230
             
-            if self.y <= 0:
-                self.y = 0
+                if self.y <= 0:
+                    self.y = 0
+                
+                self.randomdist -= 1
                 
             self.status["age"] += .1
                 
+            self.sprite.update(self.x,self.y)
             
             if self.status["pregnant"]:
                 self.gestation -= 1
                 
                 if self.gestation == 0:
-                    World.birth() 
+                    self.status["pregnant"] = False
+                    world.birth(self.x,self.y,self.organismlist) 
+                    
+            if self.sprite.collide(self.organismlist) == "mate":
+                self.mate()
+                print("mated!")
         else:
-            pass
+            self.organismlist.remove(self.sprite)
+        
+
             
 class vegetation(object,):
     
