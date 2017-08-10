@@ -3,10 +3,11 @@
 from biomass import *
 from world import *
 from substrate import *
-import pygame            
+import pygame
+
+pygame.init()
 
 
-            
 world1 = World()
 go = True
 
