@@ -1,7 +1,10 @@
-import biomass
 from substrate import *
 import random
 #the world maintains the location of all organisms, monitors climate and food levels, determines biomass density, and controls updates.
+screenx = 320
+screeny = 240
+
+
 class World(object):
     
     def __init__(self):
@@ -15,10 +18,10 @@ class World(object):
             
     def birth(self,locx,locy,organisms):
         print("birthing a new organism at " + str(locx) + " and " + str(locy))
-        self.population.append(organism("meat",10,10,locx,locy,200,10,10,organisms))
+        self.population.append(organism("meat",10,10,locx,locy,120,10,10,organisms))
         
     def starter(self,organisms):
-        for i in range(3):
+        for i in range(5):
             self.newlocx = random.randint(0,self.stagex)
             self.newlocy = random.randint(0,self.stagey)
             self.birth(self.newlocx,self.newlocy,organisms)
@@ -101,14 +104,14 @@ class organism(object):
                     self.y -= 1
 
             
-                if self.x >= 310:
-                    self.x = 310
+                if self.x >= screenx - 8:
+                    self.x = screenx - 8
             
                 if self.x <= 0:
                     self.x =0
             
-                if self.y >= 230:
-                    self.y = 230
+                if self.y >= screeny - 7:
+                    self.y = screeny - 7
             
                 if self.y <= 0:
                     self.y = 0

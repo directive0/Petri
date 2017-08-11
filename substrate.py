@@ -85,7 +85,9 @@ class Box(object):
         rect = pygame.Rect((self.x,self.y), self.size)
         pygame.draw.rect(surface, self.color, rect)
 
-
+def textwrite():
+    pass
+    
 tock = timer()
 
 def subdraw(organisms,pop,world):
@@ -102,6 +104,6 @@ def subdraw(organisms,pop,world):
 
     organisms.draw(surface)    
     pygame.display.flip()
-    pygame.time.wait(50)
+    #pygame.time.wait(50)
     os.system("clear")
     
