@@ -1,10 +1,7 @@
+import biomass
 from substrate import *
 import random
 #the world maintains the location of all organisms, monitors climate and food levels, determines biomass density, and controls updates.
-screenx = 320
-screeny = 240
-
-
 class World(object):
     
     def __init__(self):
@@ -34,7 +31,6 @@ class World(object):
         for x in self.population:
             x.update(self)
             self.info = x.getstatus()
-            print(self.info)
 
 class organism(object):
 
@@ -45,9 +41,6 @@ class organism(object):
         self.y = locationy
         burnadjust = random.randint(-100,100)
         self.burn = burn + burnadjust
-        self.direction = 0
-        self.haschosen = False
-        self.distance = 0
         self.sex = random.randint(0,1)
         self.status = {'alive' : True, 'pregnant': False, 'sick': False, 'age' : 0, 'sex' : self.sex, "locx" : self.x, "locy" : self.y }
         self.randomdist = 0
@@ -104,14 +97,14 @@ class organism(object):
                     self.y -= 1
 
             
-                if self.x >= screenx - 8:
-                    self.x = screenx - 8
+                if self.x >= 310:
+                    self.x = 310
             
                 if self.x <= 0:
                     self.x =0
             
-                if self.y >= screeny - 7:
-                    self.y = screeny - 7
+                if self.y >= 230:
+                    self.y = 230
             
                 if self.y <= 0:
                     self.y = 0

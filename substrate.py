@@ -40,7 +40,6 @@ class OrganismSprite(pygame.sprite.Sprite):
         for x in collisions:
             targetsex = x.getsex()
             if self.sex == 0 and self.sex != targetsex:
-                print("ooooh la laaaaaa")
                 return "mate"
 
 
@@ -85,9 +84,7 @@ class Box(object):
         rect = pygame.Rect((self.x,self.y), self.size)
         pygame.draw.rect(surface, self.color, rect)
 
-def textwrite():
-    pass
-    
+
 tock = timer()
 
 def subdraw(organisms,pop,world):
