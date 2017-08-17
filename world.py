@@ -1,3 +1,4 @@
+#! /usr/bin/python
 import biomass
 from substrate import *
 import random
@@ -9,7 +10,11 @@ class World(object):
         self.stagex, self.stagey = self.gameinfo['size']
         self.started = 1
         self.population = []
-        
+        self.plantpop = []
+    
+    def getppop(self):
+        return self.plantpop
+            
     def getpop(self):
         return self.population
         
@@ -28,28 +33,29 @@ class World(object):
     def createfauna(self,locx,locy,organisms):
         self.population.append(Fauna(True,10,10,locx,locy,120,10,10,organisms,self.stagex,self.stagey))
 
-    def createflora(self,locx,locy,organisms):
-        self.population.append(Flora(True,True,locx,locy,True))
+    def createflora(self,locx,locy,plants):
+        pass
+        self.plantpop.append(Flora(True,True,locx,locy,True,plants,self.stagex,self.stagey))
             
     def birth(self,locx,locy,organisms):
         litter = random.randint(0,2)
         for x in range(litter):
             self.population.append(Fauna(False,10,10,locx,locy,120,10,10,organisms,self.stagex,self.stagey))
         
-    def starter(self,organisms):
+    def starter(self,organisms,plants):
         for i in range(self.gameinfo['spawnfauna']):
             self.newlocx = random.randint(160,self.stagex)
             self.newlocy = random.randint(0,self.stagey)
             self.createfauna(self.newlocx,self.newlocy,organisms)
             
-        #for i in range(self.gameinfo['spawnflora']):
-            #self.newlocx = random.randint(160,self.stagex)
-            #self.newlocy = random.randint(0,self.stagey)
-            #self.createfauna(self.newlocx,self.newlocy,organisms)
+        for i in range(self.gameinfo['spawnflora']):
+            self.newlocx = random.randint(160,self.stagex)
+            self.newlocy = random.randint(0,self.stagey)
+            self.createflora(self.newlocx,self.newlocy,plants)
             
-    def update(self,organisms): 
+    def update(self,organisms,plants): 
         if self.started == 1:
-            self.starter(organisms)
+            self.starter(organisms,plants)
             self.started = 0
         
         for x in self.population:
@@ -222,22 +228,15 @@ class Fauna(object):
 # vegetation to be worked out.
 class Flora(object,):
     
-    def __init__(self,kind,span,location,fruit):
+    def __init__(self,kind,span,locationx,locationy,fruit,plantlist,stagex,stagey):
         # generates a genetic marker set
         self.genes={'kind':kind,'span':span,'fruit':fruit}
 
         # places organism at location defined
         self.x = locationx
         self.y = locationy
-
-        # size of play field
         self.stagex = stagex
         self.stagey = stagey
-
-        # lifespan randomization
-        burnadjust = random.randint(-100,100)
-        self.burn = burn + burnadjust
-
         # assigns sex
         self.sex = random.randint(0,1)
 
@@ -245,20 +244,58 @@ class Flora(object,):
         self.deviate = random.randint(-15,15)
 
         # assigns organisms state
-        self.status = {'alive' : True, 'pregnant': False, 'sick': False, 'age' : 0, 'sex' : self.sex, "locx" : self.x, "locy" : self.y, "mature" : False }
+        self.status = {'alive' : True, 'age' : 0, 'sex' : self.sex, "locx" : self.x, "locy" : self.y, "mature" : False }
         
-        self.sprite = OrganismSprite(self.x,self.y,self.status)
+        self.sprite = FloraSprite(self.x,self.y,self.status)
         
         # adds organism to sprite list
-        organismlist.add(self.sprite)
+        plantlist.add(self.sprite)
         
         # adds the organismlist to this object for further use
-        self.organismlist = organismlist
+        self.plantlist = plantlist
+        self.maturetick = 0
+        self.maturescaler = random.randint(2,20)
+        self.maturelevel = 0
+        self.sizesprite()
+        self.bound()
 
-    def update(self):
+        
+        
+    def sizesprite(self):    
+        # reads the size of the sprite (for boundries)
+        self.sizex,self.sizey = self.sprite.getsize()
+        
+    def bound(self):
+        if self.x >= self.stagex - self.sizex:
+            self.x = self.stagex - self.sizex
+    
+        if self.x <= 160:
+            self.x =160
+    
+        if self.y >= self.stagey - self.sizey:
+            self.y = self.stagey - self.sizey
+    
+        if self.y <= 0:
+            self.y = 0
+        
+        self.sprite.update(self.x,self.y)
+    def getstatus(self):
+        pass
+        
+    def update(self,world):
         #runs the main alive routine every cycle
-        if self.state:
-            pass
+        self.sizesprite()
+        self.bound()
+        
+        if self.status['alive']:
+            self.status['age'] += .1
+            self.maturetick += .1
+            
+        if self.maturetick > self.maturescaler:
+            self.maturelevel += 1
+            self.sprite.mature(self.maturelevel)
+            print "just matured a plant"
+            self.maturetick = 0
 
     def sprout(self):
         pass

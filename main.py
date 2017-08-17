@@ -1,3 +1,4 @@
+#! /usr/bin/python
 #petri dish. my attempt a a game of life.
 #c.barrett, guidestar interplanetary.
 from world import *
@@ -8,12 +9,13 @@ import os
 pygame.init()
 
 organisms = pygame.sprite.Group()
+plants = pygame.sprite.Group()
 
 go = True
 
 status = "startup"
 
-gameinfo = {'target': 'desktop','size': (800,480), 'spawnfauna' : 100, 'spawnflora' : 100}
+gameinfo = {'target': 'desktop','size': (800,480), 'spawnfauna' : 100, 'spawnflora' : 100, 'faplus': ((124,259),(151,286)),'faneg':((92,259),(119,286)),'flplus':((124,320),(151,347)),'flneg':((92,320),(119,347)), 'gbutt' : ((22,415),(60,452)), 'rbutt' : ((99,417),(136,454))}
 
 def printinfo(population):
     os.system("clear")
@@ -46,9 +48,10 @@ while go:
     
     
     if status == "game":
-        world1.update(organisms)
+        world1.update(organisms,plants)
         population = world1.getpop()
-        status = sub.draw(organisms,population,world1)
+        plantpopulation = world1.getppop()
+        status = sub.draw(organisms,plants,population,plantpopulation,world1)
         pygame.time.wait(50)
         
     if status == 'stop':
@@ -56,9 +59,10 @@ while go:
         
     if status == "restart":
         organisms.empty()
+        plants.empty()
         status = "startup"
         
     if status == 'quit':
         go = False
     
-    printinfo(population)
+    #printinfo(population)

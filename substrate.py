@@ -1,3 +1,5 @@
+#! /usr/bin/python
+
 import pygame
 black = (0,0,0)
 pygame.init()
@@ -19,10 +21,10 @@ plant3 = pygame.image.load("assets/plant3.png")
 plant4 = pygame.image.load("assets/plant4.png")
 plant5 = pygame.image.load("assets/plant5.png")
 
-petrinm = pygame.image.load("petrinm.png")
-petrinf  = pygame.image.load("petrinf.png")
-petrinma = pygame.image.load("petrinma.png")
-petrinfa = pygame.image.load("petrinfa.png")
+petrinm = pygame.image.load("assets/petrinm.png")
+petrinf  = pygame.image.load("assets/petrinf.png")
+petrinma = pygame.image.load("assets/petrinma.png")
+petrinfa = pygame.image.load("assets/petrinfa.png")
 pygame.display.set_caption('Petri Dish Alpha 1')
 consoletext = pygame.font.Font("assets/arcade.ttf", 10, bold=False, italic=False)
 digitaltext = pygame.font.Font("assets/digital.ttf", 10, bold=False, italic=False)
@@ -80,16 +82,32 @@ class FloraSprite(pygame.sprite.Sprite):
         self.size=(10,10)
         self.color=(255,255,255)
         self.status = status
-        self.sex = status["sex"]
-        if self.sex == 0:
-            self.image = petrinf
-        else:
-            self.image = petrinm
-            
+        self.image = plant1   
         self.rect = self.image.get_rect()
         
         self.rect.y = y
         self.rect.x = x
+        
+    def getsize(self):
+        return self.image.get_size()
+        
+    def update(self,x,y):
+        self.rect.x = x
+        self.rect.y = y
+    
+        
+    def mature(self,level):
+        if level == 1:
+            self.image = plant2 
+         
+        if level == 2:
+            self.image = plant3
+        
+        if level == 3:
+            self.image = plant4
+            
+        if level == 4:
+            self.image = plant5
         
 class ControlPanel(object):
     def __init__(self,surface,gameinfo):
@@ -118,9 +136,14 @@ class ControlPanel(object):
     
     def displaylcd(self):
         self.lcd1 = Label()
+        self.lcd2 = Label()
         content = str(self.gameinfo['spawnfauna'])
+        content2 = str(self.gameinfo['spawnflora'])
         self.lcd1.update(content,23,12,264,"assets/digital.ttf",retroblue)
         self.lcd1.draw(self.surface)
+        self.lcd2.update(content2,23,12,325,"assets/digital.ttf",retroblue)
+        self.lcd2.draw(self.surface)
+        
     
     def draw(self,population):
         self.panel.draw(self.surface)
@@ -128,7 +151,6 @@ class ControlPanel(object):
         index = 0
         ypos = 38
         textheight = 16
-        print(self.textinfo)
         for n in self.textinfo:
             self.n = Label()
             self.n.update(self.textinfo[index],13,13,ypos,"assets/arcade.ttf",retrogreen)
@@ -239,12 +261,58 @@ class substrate(object):
         self.sidepanel = ControlPanel(self.surface,gameinfo)
         self.status = 'game'
 
-    def draw(self,organisms,pop,world):
+    def clickcheck(self,mouse,corl,corr):
+        mx,my = mouse
+        
+        if mx >= corl[0] and mx <= corr[0]:
+            if my >= corl[1] and my <= corr[1]:
+                return True
+    
+    def clicked(self):
+        status = 'game'
+        mouse,mbutt = getmouse()
+        
+        if mbutt == (1,0,0):
+
+            fapl,fapr = self.gameinfo['faplus']
+            fanl,fanr = self.gameinfo['faneg']
+            flpl,flpr = self.gameinfo['flplus']
+            flnl,flnr = self.gameinfo['flneg']
+            gbutl,gbutr = self.gameinfo['gbutt']
+            rbutl,rbutr = self.gameinfo['rbutt']
+            
+            if self.clickcheck(mouse,fapl,fapr):
+                self.gameinfo['spawnfauna'] += 1
+
+            if self.clickcheck(mouse,fanl,fanr):
+                self.gameinfo['spawnfauna'] -= 1
+                
+            if self.clickcheck(mouse,flpl,flpr):
+                self.gameinfo['spawnflora'] += 1
+
+            if self.clickcheck(mouse,flnl,flnr):
+                self.gameinfo['spawnflora'] -= 1
+                
+            if self.clickcheck(mouse,gbutl,gbutr):
+                status = 'restart'
+            
+            if self.clickcheck(mouse,rbutl,rbutr):
+                status = 'quit'
+                    
+        return status
+        
+        
+    def draw(self,organisms,plants,pop,ppop,world):
         #all_sprites_list.clear(surface,black)
         self.surface.fill(black)
     
         for x in pop:
             x.update(world)
+        
+        for x in ppop:
+            x.update(world)
+        
+        self.status = self.clicked()
         
         key = getevents()
         
@@ -254,15 +322,9 @@ class substrate(object):
         if key[pygame.K_r]:
             self.status = "restart"
         
-        mouse,mbutt = getmouse()
-        
-        if mbutt == (1,0,0):
-            mx,my = mouse
-            if mx > 22 and mx < 60:
-                if my > 415 and my < 452:
-                    self.gameinfo['spawnfauna'] += 1
+       
             
-        
+        plants.draw(self.surface)
         organisms.draw(self.surface)
         self.sidepanel.draw(pop)
         pygame.display.flip()
