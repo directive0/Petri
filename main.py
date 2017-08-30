@@ -1,6 +1,7 @@
 #! /usr/bin/python
 #petri dish. my attempt a a game of life.
 #c.barrett, guidestar interplanetary.
+
 from world import *
 from substrate import *
 import pygame
@@ -15,7 +16,7 @@ go = True
 
 status = "startup"
 
-gameinfo = {'target': 'desktop','size': (800,480), 'spawnfauna' : 100, 'spawnflora' : 100, 'faplus': ((124,259),(151,286)),'faneg':((92,259),(119,286)),'flplus':((124,320),(151,347)),'flneg':((92,320),(119,347)), 'gbutt' : ((22,415),(60,452)), 'rbutt' : ((99,417),(136,454))}
+gameinfo = {'target': 'desktop','size': (800,480), 'spawnfauna' : 1, 'spawnflora' : 1 , 'faplus': ((124,259),(151,286)),'faneg':((92,259),(119,286)),'flplus':((124,320),(151,347)),'flneg':((92,320),(119,347)), 'gbutt' : ((22,415),(60,452)), 'rbutt' : ((99,417),(136,454))}
 
 def printinfo(population):
     os.system("clear")
@@ -45,8 +46,7 @@ while go:
         world1 = World(gameinfo)
         sub = substrate(gameinfo)
         status =  "game"
-    
-    
+
     if status == "game":
         world1.update(organisms,plants)
         population = world1.getpop()

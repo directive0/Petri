@@ -1,11 +1,15 @@
 #! /usr/bin/python
 
 import pygame
+from pygame.locals import *
 black = (0,0,0)
 pygame.init()
 pygame.font.init()
 import time 
 
+
+pygame.key.set_repeat(500,30)
+        
 #Colour Standards:
 white = (255,255,255)
 retrogreen = (0,255,50)
@@ -20,14 +24,13 @@ plant2 = pygame.image.load("assets/plant2.png")
 plant3 = pygame.image.load("assets/plant3.png")
 plant4 = pygame.image.load("assets/plant4.png")
 plant5 = pygame.image.load("assets/plant5.png")
-
 petrinm = pygame.image.load("assets/petrinm.png")
 petrinf  = pygame.image.load("assets/petrinf.png")
 petrinma = pygame.image.load("assets/petrinma.png")
 petrinfa = pygame.image.load("assets/petrinfa.png")
 pygame.display.set_caption('Petri Dish Alpha 1')
-consoletext = pygame.font.Font("assets/arcade.ttf", 10, bold=False, italic=False)
-digitaltext = pygame.font.Font("assets/digital.ttf", 10, bold=False, italic=False)
+consoletext = pygame.font.Font("assets/arcade.ttf", 12, bold=False, italic=False)
+digitaltext = pygame.font.Font("assets/digital.ttf", 12, bold=False, italic=False)
 
 class FaunaSprite(pygame.sprite.Sprite):
 
@@ -62,14 +65,29 @@ class FaunaSprite(pygame.sprite.Sprite):
     def getstatus(self):
         return self.status
 
-    def collide(self,list):
+    def collide(self,list,mode):
         collisions = pygame.sprite.spritecollide(self, list, False)
-
-        for x in collisions:
-            targetstatus = x.getstatus()
-            if self.sex == 0 and self.sex != targetstatus["sex"]:
-                if self.status["mature"] and targetstatus["mature"]:
-                    return "mate"
+        
+        if mode == 0:
+            for x in collisions:
+                targetstatus = x.getstatus()
+                if self.sex == 0 and self.sex != targetstatus["sex"]:
+                    if self.status["mature"] and targetstatus["mature"]:
+                        return True
+                    else:
+                        return False
+        else:
+            for x in collisions:
+                targetstatus = x.getstatus()
+                if targetstatus["fruit"]:
+                    targetstatus['fruit'] = False
+                    x.waseaten()
+                    targetstatus['maturelevel'] = 1
+                    self.status['hunger'] = 100
+                    print str(self) + " Says: 'I ated the purple berry'"
+                    return True
+                else:
+                    return False
 
     def update(self,x,y):
         self.rect.x = x
@@ -77,7 +95,7 @@ class FaunaSprite(pygame.sprite.Sprite):
        
 class FloraSprite(pygame.sprite.Sprite):
 
-    def __init__(self,x,y,status):
+    def __init__(self,x,y,status,obj):
         super(FloraSprite,self).__init__()
         self.size=(10,10)
         self.color=(255,255,255)
@@ -88,6 +106,9 @@ class FloraSprite(pygame.sprite.Sprite):
         self.rect.y = y
         self.rect.x = x
         
+    def getstatus(self):
+        return self.status
+        
     def getsize(self):
         return self.image.get_size()
         
@@ -95,8 +116,13 @@ class FloraSprite(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
     
+    def waseaten(self):
+        self.status['maturelevel'] = 1
+        self.mature(1)
         
     def mature(self,level):
+        
+        #sprout
         if level == 1:
             self.image = plant2 
          
@@ -105,7 +131,8 @@ class FloraSprite(pygame.sprite.Sprite):
         
         if level == 3:
             self.image = plant4
-            
+        
+        #fully grown with fruit
         if level == 4:
             self.image = plant5
         
@@ -129,19 +156,24 @@ class ControlPanel(object):
                     self.popinfo["pregs"] +=1
     
             self.popinfo["avage"] += information["age"]
-
-        average = self.popinfo["avage"] / len(population)
-    
+        
+        if len(population) > 0:
+            average = self.popinfo["avage"] / len(population)
+        else:
+            average = 0
+            
         self.textinfo =(("Population: " + str(self.popinfo["mortality"])),("Pregnancies: " + str(self.popinfo["pregs"])),("Average Age: " + str(int(average))))
     
     def displaylcd(self):
         self.lcd1 = Label()
         self.lcd2 = Label()
         content = str(self.gameinfo['spawnfauna'])
+
+        
         content2 = str(self.gameinfo['spawnflora'])
-        self.lcd1.update(content,23,12,264,"assets/digital.ttf",retroblue)
+        self.lcd1.update(content,23,12,261,"assets/digital.ttf",retroblue)
         self.lcd1.draw(self.surface)
-        self.lcd2.update(content2,23,12,325,"assets/digital.ttf",retroblue)
+        self.lcd2.update(content2,23,12,322,"assets/digital.ttf",retroblue)
         self.lcd2.draw(self.surface)
         
     
@@ -257,6 +289,8 @@ class substrate(object):
             self.surface = pygame.display.set_mode(self.screenSize)
         elif gameinfo['target'] == 'pandora':
             self.surface = pygame.display.set_mode(self.screenSize,pygame.FULLSCREEN)
+            #pygame.event.set_blocked(pygame.MOUSEMOTION)
+            #pygame.mouse.set_visible(0)
     
         self.sidepanel = ControlPanel(self.surface,gameinfo)
         self.status = 'game'
@@ -269,7 +303,33 @@ class substrate(object):
                 return True
     
     def clicked(self):
-        status = 'game'
+        status = 'game'        
+        
+        pressed = pygame.key.get_pressed()
+        
+      
+        events = pygame.event.get()
+
+        for e in events:
+            if e.type == KEYDOWN:
+                if e.key == K_ESCAPE:
+                    self.status = "quit"
+                elif e.key == K_DOWN:
+                    self.gameinfo['spawnflora'] -= 1
+                elif e.key == K_UP:
+                    self.gameinfo['spawnflora'] += 1
+                elif e.key == K_LEFT:
+                    self.gameinfo['spawnfauna'] -= 1
+                elif e.key == K_RIGHT:
+                    self.gameinfo['spawnfauna'] += 1
+                elif e.key == K_UP and e.key == K_RIGHT:
+                    self.gameinfo['spawnfauna'] += 1
+                    self.gameinfo['spawnflora'] += 1
+                elif e.key == K_r:
+                    status = "restart"
+                elif e.key == K_q:
+                    status = "quit"
+                  
         mouse,mbutt = getmouse()
         
         if mbutt == (1,0,0):
@@ -298,39 +358,38 @@ class substrate(object):
             
             if self.clickcheck(mouse,rbutl,rbutr):
                 status = 'quit'
+            
+        if self.gameinfo["spawnflora"] < 0:
+            self.gameinfo["spawnflora"] = 0
+        
+        if self.gameinfo["spawnfauna"] < 0:
+            self.gameinfo["spawnfauna"] = 0
                     
         return status
         
         
     def draw(self,organisms,plants,pop,ppop,world):
-        #all_sprites_list.clear(surface,black)
+        
         self.surface.fill(black)
-    
+
         for x in pop:
             x.update(world)
-        
+
         for x in ppop:
             x.update(world)
-        
+
         self.status = self.clicked()
-        
-        key = getevents()
-        
-        if key[pygame.K_q]:
-            self.status = 'quit'
-    
-        if key[pygame.K_r]:
-            self.status = "restart"
-        
-       
+
+ 
             
+            
+
+        
         plants.draw(self.surface)
         organisms.draw(self.surface)
         self.sidepanel.draw(pop)
         pygame.display.flip()
         return self.status
-        #pygame.time.wait(50))
-    
     
     
 class menu(object):
